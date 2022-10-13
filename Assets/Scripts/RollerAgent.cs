@@ -63,21 +63,34 @@ public class RollerAgent : Agent
         float yPos = this.transform.localPosition.y;
         // TODO: determine how to tell when the agent has fallen off the platform
         // and what to do when that happens
-        
+
+        //------------ SOLUTION START - DELETE FOR STUDENTS --------------
+        if(yPos < 0){
+            AddReward(-1.0f);
+            EndEpisode();
+        }
+
+        //Small negative reward to encourage it to solve the problem faster! (AKA: The Meeseeks Punishment)
+        AddReward(-0.001f);
+
+        // ----------- SOLUTION END --------------------------------------
 
 
 
     }
 
     //Detect collisions between the GameObjects with Colliders attached
-void OnTriggerEnter(Collider other){
+    void OnTriggerEnter(Collider other){
 
          // TODO: determine when to give reward to the agent, the amount of reward,
         // and what happens after reward is given
         // Hint: check the Agents documentation for relevant functions to use
         if (other.name == "Target")
         {
-            
+            //------------ SOLUTION START - DELETE FOR STUDENTS --------------
+            AddReward(1.0f);
+            ResetTargetPosition();
+            // ----------- SOLUTION END --------------------------------------
         }
     }
 
