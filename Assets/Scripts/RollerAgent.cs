@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
+using Unity.MLAgents.Actuators;
 
 
 public class RollerAgent : Agent
@@ -25,7 +26,11 @@ public class RollerAgent : Agent
             this.rBody.transform.localPosition = new Vector3(0,0.5f, 0);
         }
 
-        Target.localPosition = new Vector3(Random.value * 8 - 4, 0.5f, Random.value * 8 - 4);
+        ResetTargetPosition();
+    }
+
+    public void ResetTargetPosition(){
+         Target.localPosition = new Vector3(Random.value * 8 - 4, 0.5f, Random.value * 8 - 4);
     }
 
     // Get relevant information from the environment to effectively learn behavior
@@ -42,20 +47,15 @@ public class RollerAgent : Agent
 
     public float forceMultiplier = 10;
     // What to do when an action is received (i.e. when the Brain gives the agent information about possible actions)
-    public override void OnActionReceived(float[] vectorAction){
+    public override void OnActionReceived(ActionBuffers actions){
 
-        // Apply 2 actions to x and z coordinates of the ball (to move on the platform)
-        Vector3 controlSignal = Vector3.zero;
-        controlSignal.x = vectorAction[0];
-        controlSignal.z = vectorAction[1];
-        rBody.AddForce(controlSignal * forceMultiplier);
-
-        // distance between the agent (the ball) and the target
-        float distanceToTarget = Vector3.Distance(this.transform.localPosition, Target.localPosition);
-        // TODO: determine when to give reward to the agent, the amount of reward,
-        // and what happens after reward is given
-        // Hint: check the Agents documentation for relevant functions to use
         
+        // The actions are the output from the neural network
+        // These actions are converted into a force which push the ball in some direction along the 2D plane (x and z axis)
+        Vector3 controlSignal = Vector3.zero;
+        controlSignal.x = actions.ContinuousActions[0];
+        controlSignal.z = actions.ContinuousActions[1];
+        rBody.AddForce(controlSignal * forceMultiplier);
         
 
 
@@ -69,11 +69,24 @@ public class RollerAgent : Agent
 
     }
 
+    //Detect collisions between the GameObjects with Colliders attached
+void OnTriggerEnter(Collider other){
+
+         // TODO: determine when to give reward to the agent, the amount of reward,
+        // and what happens after reward is given
+        // Hint: check the Agents documentation for relevant functions to use
+        if (other.name == "Target")
+        {
+            
+        }
+    }
+
     // For manual check of controls 
-    public override void Heuristic(float[] actionsOut)
+    public override void Heuristic(in ActionBuffers actionsOut)
 {
-    actionsOut[0] = Input.GetAxis("Horizontal");
-    actionsOut[1] = Input.GetAxis("Vertical");
+     ActionSegment<float> continuousActions = actionsOut.ContinuousActions;
+    continuousActions[0] = Input.GetAxis("Horizontal");
+    continuousActions[1] = Input.GetAxis("Vertical");
 }
 
 
